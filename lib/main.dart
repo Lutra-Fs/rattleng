@@ -82,7 +82,7 @@ Future<bool> checkRInstallation() async {
   }
 }
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   // The `main` entry point into any dart app.
   //
   // This is required to be [async] since we use [await] below to initalise the window manager.
@@ -216,6 +216,13 @@ Future<void> main() async {
   // Set up the app's color scheme.
   Flavor flavor = catppuccin.latte;
 
+  // Extract the initial dataset path from command line arguments if provided.
+  // This allows users to start Rattle with a dataset: rattle mydata.csv
+  String? initialDatasetPath;
+  if (args.isNotEmpty) {
+    initialDatasetPath = args[0];
+  }
+
   // The runApp() function takes the given Widget and makes it the root of the
   // widget tree.
   //
@@ -250,7 +257,7 @@ Future<void> main() async {
           //       fontSizeDelta: 2.0,
           //     ),
         ),
-        home: const RattleApp(),
+        home: RattleApp(initialDatasetPath: initialDatasetPath),
       ),
     ),
   );

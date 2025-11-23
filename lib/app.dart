@@ -26,6 +26,8 @@
 
 library;
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,7 +35,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'package:rattle/home.dart';
+import 'package:rattle/providers/path.dart';
 import 'package:rattle/providers/script.dart';
+import 'package:rattle/r/load_dataset.dart';
 import 'package:rattle/utils/is_desktop.dart';
 import 'package:rattle/utils/timestamp.dart';
 import 'package:rattle/widgets/close_dialog.dart';
@@ -50,7 +54,9 @@ final GlobalKey<RattleHomeState> rattleHomeKey = GlobalKey<RattleHomeState>();
 /// window-related events, particularly for desktop platforms.
 
 class RattleApp extends ConsumerStatefulWidget {
-  const RattleApp({super.key});
+  final String? initialDatasetPath;
+
+  const RattleApp({super.key, this.initialDatasetPath});
 
   @override
   ConsumerState<RattleApp> createState() => _RattleAppState();
@@ -93,6 +99,51 @@ class _RattleAppState extends ConsumerState<RattleApp> with WindowListener {
               .replaceAll('VERSION', info.version)
               .replaceAll('TIMESTAMP', 'Timestamp ${timestamp()}'),
         );
+
+    // Handle initial dataset path if provided via command line.
+    if (widget.initialDatasetPath != null &&
+        widget.initialDatasetPath!.isNotEmpty) {
+      final path = widget.initialDatasetPath!;
+
+      // Check if the file exists.
+      final file = File(path);
+      if (!await file.exists()) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('File not found: $path'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Check if the file has a supported extension.
+      if (!path.endsWith('.csv') &&
+          !path.endsWith('.xlsx') &&
+          !path.endsWith('.txt')) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Unsupported file type: $path\nSupported types: .csv, .xlsx, .txt',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Set the path in the provider and load the dataset.
+      ref.read(pathProvider.notifier).state = path;
+
+      // Wait for the widget tree to be built before loading the dataset.
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (mounted) {
+          await rLoadDataset(context, ref);
+        }
+      });
+    }
   }
 
   /// Handle the window close event.

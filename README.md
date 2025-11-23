@@ -73,7 +73,9 @@ installers
 
 Then:
 
-+ Start RattleNG.
++ Start RattleNG. You can optionally specify a dataset file to load on
+  startup from the command line: `rattle mydata.csv`. This works with
+  `.csv`, `.xlsx`, and `.txt` files.
 + From the **Dataset** tap the **Dataset** button and then choose
   **Weather** to load the Canberra weather dataset for 1 year. You can
   also load your own CSV or TXT file by tapping the **Filename**
