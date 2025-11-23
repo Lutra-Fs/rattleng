@@ -82,7 +82,7 @@ Future<bool> checkRInstallation() async {
   }
 }
 
-Future<void> main(List<String> args) async {
+Future<void> main([List<String> args = const []]) async {
   // The `main` entry point into any dart app.
   //
   // This is required to be [async] since we use [await] below to initalise the window manager.
